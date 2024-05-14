@@ -3513,8 +3513,8 @@ const child_process_1 = __nccwpck_require__(81);
 commander_plus_1.default
     .usage('--folder <option> --intRepoPrefix <option> --repoName <option>')
     .option('--folder <folder>', 'folder path to run on')
-    .option('--intRepoPrefix <prefix>', 'the prefix to idenfiy internal node modules, maybe behind a nexus')
-    .option('--repoName <name>', 'the name of the repo to exclude selfreferencing modules')
+    .option('--intRepoPrefix <prefix>', 'the prefix to idenfiy internal node modules, maybe behind a nexus (@sky-uk/)')
+    .option('--repoName <name>', 'the name of the repo to exclude selfreferencing modules (cherry-app-release)')
     .parse(process.argv);
 let missingRequiredArg = false;
 const printMissingArg = (details) => console.error(chalk_1.default.red('Missing argument:'), details);
