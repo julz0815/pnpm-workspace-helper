@@ -4,3 +4,4 @@ node_modules/
 .DS_Store
 directory-table.txt
 google.yml
+dist/pnpm-helper.js.zip

@@ -3526,7 +3526,8 @@ if (missingRequiredArg) {
     commander_plus_1.default.help();
 }
 //read the workspaces from the package.json
-const workspaces = require(commander_plus_1.default.folder + '/package.json').workspaces.packages;
+const workspaces = require(commander_plus_1.default.folder + '/package.json').workspaces;
+//const workspaces = require(program.folder+'/package.json').workspaces.packages;
 function findSubfolders(folderPath) {
     try {
         // Read the contents of the folder

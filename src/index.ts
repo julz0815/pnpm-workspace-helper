@@ -24,7 +24,8 @@ if (missingRequiredArg) {
 }
 
 //read the workspaces from the package.json
-const workspaces = require(program.folder+'/package.json').workspaces.packages;
+const workspaces = require(program.folder+'/package.json').workspaces;
+//const workspaces = require(program.folder+'/package.json').workspaces.packages;
 
 
 function findSubfolders(folderPath) {
