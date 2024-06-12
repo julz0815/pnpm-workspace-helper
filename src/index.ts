@@ -118,6 +118,18 @@ workspaces.forEach(workspace => {
               //overwrite the package.json file
               fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson2, null, 2));
             }
+            if(packageJson2.dependencies){
+              console.log('packageJson2.ddependencies: '+JSON.stringify(packageJson2.dependencies));
+              for (const [key, value] of Object.entries(packageJson2.dependencies)) {
+                  console.log('key: '+key+' program.repoName: '+program.repoName+' key.includes(program.repoName): '+key.includes(program.repoName));
+                  if(key.includes(program.repoName)){
+                      console.log('delete key: '+key);
+                      delete packageJson2.dependencies[key];
+                  }
+              }
+              //overwrite the package.json file
+              fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson2, null, 2));
+            }
           }
           
 

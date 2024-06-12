@@ -3606,6 +3606,18 @@ workspaces.forEach(workspace => {
                         //overwrite the package.json file
                         fs.writeFileSync(commander_plus_1.default.folder + '/' + myWorkspace + '/' + subfolder + '/package.json', JSON.stringify(packageJson2, null, 2));
                     }
+                    if (packageJson2.dependencies) {
+                        console.log('packageJson2.ddependencies: ' + JSON.stringify(packageJson2.dependencies));
+                        for (const [key, value] of Object.entries(packageJson2.dependencies)) {
+                            console.log('key: ' + key + ' program.repoName: ' + commander_plus_1.default.repoName + ' key.includes(program.repoName): ' + key.includes(commander_plus_1.default.repoName));
+                            if (key.includes(commander_plus_1.default.repoName)) {
+                                console.log('delete key: ' + key);
+                                delete packageJson2.dependencies[key];
+                            }
+                        }
+                        //overwrite the package.json file
+                        fs.writeFileSync(commander_plus_1.default.folder + '/' + myWorkspace + '/' + subfolder + '/package.json', JSON.stringify(packageJson2, null, 2));
+                    }
                 }
                 //run execsync npm install to create package-lock.json
                 try {
