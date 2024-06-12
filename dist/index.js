@@ -3595,8 +3595,11 @@ workspaces.forEach(workspace => {
                     const packageJson2 = require(commander_plus_1.default.folder + '/' + myWorkspace + '/' + subfolder + '/package.json');
                     console.log(chalk_1.default.green(`\n## Rewriting (repoName) package.json in ${commander_plus_1.default.folder}/${myWorkspace}/${subfolder}...`));
                     if (packageJson2.devDependencies) {
+                        console.log('packageJson2.devDependencies: ' + JSON.stringify(packageJson2.devDependencies));
                         for (const [key, value] of Object.entries(packageJson2.devDependencies)) {
+                            console.log('key: ' + key + ' program.repoName: ' + commander_plus_1.default.repoName + ' key.includes(program.repoName): ' + key.includes(commander_plus_1.default.repoName));
                             if (key.includes(commander_plus_1.default.repoName)) {
+                                console.log('delete key: ' + key);
                                 delete packageJson2.devDependencies[key];
                             }
                         }
