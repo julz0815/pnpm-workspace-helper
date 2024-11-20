@@ -27,6 +27,9 @@ if (missingRequiredArg) {
 const workspaces = require(program.folder+'/package.json').workspaces;
 //const workspaces = require(program.folder+'/package.json').workspaces.packages;
 
+console.log(chalk.green(`\n## Running on ${program.folder}...`));
+console.log(chalk.green(`\n## Workspaces: ${JSON.stringify(workspaces)}`));
+
 
 function findSubfolders(folderPath) {
     try {
@@ -59,9 +62,12 @@ function fileExists(filePath) {
 
 //remove internal node modules  
 
+const workspaceList = Array.isArray(workspaces) ? workspaces : workspaces.packages;
 
 //use the workspaces to run a dedicated command for each workspace
-workspaces.forEach(workspace => {
+
+workspaceList.forEach(workspace => {
+//workspaces.packages.forEach(workspace => {
     console.log(chalk.green(`\n## Running ${program.folder}/${workspace}...`));
     //remove /* from the workspace
     var myWorkspace = workspace.replace(/\/\*\*?/g,'');
@@ -86,6 +92,27 @@ workspaces.forEach(workspace => {
           var myForce = 'true'
 
           console.log(chalk.green('###### package.json exists, create a pacakge-lock.json file'))
+
+
+          //read package.json file and remove node modules mared as workspace includes
+          const packageJson = require(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json');
+          console.log(chalk.green(`\n## Rewriting ("workspace:") package.json in ${program.folder}/${myWorkspace}/${subfolder}...`));
+          //remove internal node modules
+          if(packageJson.dependencies){
+            for (const [key, value] of Object.entries(packageJson.dependencies)) {
+                console.log(key);
+                console.log(value);
+                if((value as string).includes('workspace')){
+                    console.log(chalk.green(`\n## Removing ${key} from ${program.folder}/${myWorkspace}/${subfolder}...`));
+                    delete packageJson.dependencies[key];
+                }
+            }
+            //overwrite the package.json file
+            fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson, null, 2));
+          }
+          
+
+
 
           //read package.json file and remove internal node modules
           if ( program.intRepoPrefix != undefined) {

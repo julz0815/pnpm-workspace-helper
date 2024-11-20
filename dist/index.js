@@ -3528,6 +3528,8 @@ if (missingRequiredArg) {
 //read the workspaces from the package.json
 const workspaces = require(commander_plus_1.default.folder + '/package.json').workspaces;
 //const workspaces = require(program.folder+'/package.json').workspaces.packages;
+console.log(chalk_1.default.green(`\n## Running on ${commander_plus_1.default.folder}...`));
+console.log(chalk_1.default.green(`\n## Workspaces: ${JSON.stringify(workspaces)}`));
 function findSubfolders(folderPath) {
     try {
         // Read the contents of the folder
@@ -3556,8 +3558,10 @@ function fileExists(filePath) {
     }
 }
 //remove internal node modules  
+const workspaceList = Array.isArray(workspaces) ? workspaces : workspaces.packages;
 //use the workspaces to run a dedicated command for each workspace
-workspaces.forEach(workspace => {
+workspaceList.forEach(workspace => {
+    //workspaces.packages.forEach(workspace => {
     console.log(chalk_1.default.green(`\n## Running ${commander_plus_1.default.folder}/${workspace}...`));
     //remove /* from the workspace
     var myWorkspace = workspace.replace(/\/\*\*?/g, '');
@@ -3576,6 +3580,22 @@ workspaces.forEach(workspace => {
                 var myWrite = `${commander_plus_1.default.folder}/${myWorkspace}/${subfolder}/yarn.lock`;
                 var myForce = 'true';
                 console.log(chalk_1.default.green('###### package.json exists, create a pacakge-lock.json file'));
+                //read package.json file and remove node modules mared as workspace includes
+                const packageJson = require(commander_plus_1.default.folder + '/' + myWorkspace + '/' + subfolder + '/package.json');
+                console.log(chalk_1.default.green(`\n## Rewriting ("workspace:") package.json in ${commander_plus_1.default.folder}/${myWorkspace}/${subfolder}...`));
+                //remove internal node modules
+                if (packageJson.dependencies) {
+                    for (const [key, value] of Object.entries(packageJson.dependencies)) {
+                        console.log(key);
+                        console.log(value);
+                        if (value.includes('workspace')) {
+                            console.log(chalk_1.default.green(`\n## Removing ${key} from ${commander_plus_1.default.folder}/${myWorkspace}/${subfolder}...`));
+                            delete packageJson.dependencies[key];
+                        }
+                    }
+                    //overwrite the package.json file
+                    fs.writeFileSync(commander_plus_1.default.folder + '/' + myWorkspace + '/' + subfolder + '/package.json', JSON.stringify(packageJson, null, 2));
+                }
                 //read package.json file and remove internal node modules
                 if (commander_plus_1.default.intRepoPrefix != undefined) {
                     const packageJson = require(commander_plus_1.default.folder + '/' + myWorkspace + '/' + subfolder + '/package.json');
