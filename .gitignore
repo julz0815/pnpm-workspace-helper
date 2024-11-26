@@ -5,3 +5,5 @@ node_modules/
 directory-table.txt
 google.yml
 dist/pnpm-helper.js.zip
+src/SKF-folder-package.json
+src/SKF-parent-package.json

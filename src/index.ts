@@ -30,6 +30,21 @@ const workspaces = require(program.folder+'/package.json').workspaces;
 console.log(chalk.green(`\n## Running on ${program.folder}...`));
 console.log(chalk.green(`\n## Workspaces: ${JSON.stringify(workspaces)}`));
 
+// Read the .npmrc file and find all registry entries that start with @
+const npmrc = fs.readFileSync(`${program.folder}/.npmrc`, 'utf8');
+const registryEntries = npmrc.match(/^@.*registry=.*$/gm);
+
+var registryName: string[] = [];
+if (registryEntries) {
+    registryEntries.forEach((entry, index) => {
+        const registryUrl = entry.split(':')[0];
+        console.log(chalk.green(`\n## found internal registry on .mpmrc: ${registryUrl}`));
+        registryName.push(registryUrl);
+    });
+} else {
+    console.log(chalk.red('No registry entries found in .npmrc file.'));
+}
+
 
 function findSubfolders(folderPath) {
     try {
@@ -72,7 +87,6 @@ workspaceList.forEach(workspace => {
     //remove /* from the workspace
     var myWorkspace = workspace.replace(/\/\*\*?/g,'');
 
-
     //for each subfolder run the command if the workspace holds an *
     if ( workspace.includes('/*') )  {
         
@@ -91,32 +105,68 @@ workspaceList.forEach(workspace => {
           var myWrite = `${program.folder}/${myWorkspace}/${subfolder}/yarn.lock`
           var myForce = 'true'
 
-          console.log(chalk.green('###### package.json exists, create a pacakge-lock.json file'))
-
-
-          //read package.json file and remove node modules mared as workspace includes
-          const packageJson = require(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json');
+          //read package.json file and remove node modules marked as workspace includes
+          let packageJson = require(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json');
           console.log(chalk.green(`\n## Rewriting ("workspace:") package.json in ${program.folder}/${myWorkspace}/${subfolder}...`));
-          //remove internal node modules
+
+          //remove all internal node modules
+          console.log(chalk.green('\n## Removing all internal node modules...'));
           if(packageJson.dependencies){
+            console.log(chalk.green('\n## in dependencies...'))
             for (const [key, value] of Object.entries(packageJson.dependencies)) {
-                console.log(key);
-                console.log(value);
                 if((value as string).includes('workspace')){
                     console.log(chalk.green(`\n## Removing ${key} from ${program.folder}/${myWorkspace}/${subfolder}...`));
                     delete packageJson.dependencies[key];
                 }
+                for (const registry of registryName){
+                  if((key as string).includes(registry)){                    
+                    console.log(chalk.green(`\n## Removing internal ${key} from ${program.folder}/${myWorkspace}/${subfolder}...`));
+                    delete packageJson.dependencies[key];
+                  }
+                }
             }
-            //overwrite the package.json file
-            fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson, null, 2));
+            
           }
+          if(packageJson.peerDependencies){
+            console.log(chalk.green('\n## in peerDependencies...'))
+            for (const [key, value] of Object.entries(packageJson.peerDependencies)) {
+                if((value as string).includes('workspace')){
+                    console.log(chalk.green(`\n## Removing ${key} from ${program.folder}/${myWorkspace}/${subfolder}...`));
+                    delete packageJson.peerDependencies[key];
+                }
+                for (const registry of registryName){
+                  if((key as string).includes(registry)){
+                    console.log(chalk.green(`\n## Removing ${key} from ${program.folder}/${myWorkspace}/${subfolder}...`));
+                    delete packageJson.peerDependencies[key];
+                  }
+                }
+            }
+          }
+          if(packageJson.devDependencies){
+            console.log(chalk.green('\n## in devDependencies...'))
+            for (const [key, value] of Object.entries(packageJson.devDependencies)) {
+                if((value as string).includes('workspace')){
+                    console.log(chalk.green(`\n## Removing ${key} from ${program.folder}/${myWorkspace}/${subfolder}...`));
+                    delete packageJson.devDependencies[key];
+                }
+                for (const registry of registryName){
+                  if((key as string).includes(registry)){
+                    console.log(chalk.green(`\n## Removing ${key} from ${program.folder}/${myWorkspace}/${subfolder}...`));
+                    delete packageJson.devDependencies[key];
+                  }
+                }
+            }
+          }
+
+          //overwrite the package.json file
+          fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson, null, 2));
           
 
 
 
           //read package.json file and remove internal node modules
           if ( program.intRepoPrefix != undefined) {
-            const packageJson = require(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json');
+            let packageJson = require(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json');
             console.log(chalk.green(`\n## Rewriting (intRepoPrefix) package.json in ${program.folder}/${myWorkspace}/${subfolder}...`));
             //remove internal node modules
             if(packageJson.dependencies){
@@ -125,32 +175,24 @@ workspaceList.forEach(workspace => {
                       delete packageJson.dependencies[key];
                   }
               }
-              //overwrite the package.json file
-              fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson, null, 2));
             }
+            //overwrite the package.json file
+            fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson, null, 2));
           }
 
           if ( program.repoName != undefined) {
-            const packageJson2 = require(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json');
-            console.log(chalk.green(`\n## Rewriting (repoName) package.json in ${program.folder}/${myWorkspace}/${subfolder}...`));
-            if(packageJson2.devDependencies){
-              for (const [key, value] of Object.entries(packageJson2.devDependencies)) {
-                  if(key.includes(program.repoName)){
-                      delete packageJson2.devDependencies[key];
-                  }
+            let packageJson = require(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json');
+            console.log(chalk.green(`\n## Rewriting devDependencies (repoName) package.json in ${program.folder}/${myWorkspace}/${subfolder}...`));
+            if(packageJson.devDependencies){
+              console.log(chalk.green('DevDependencies'))
+              for (const [key, value] of Object.entries(packageJson.devDependencies)) {
+                if( key.includes(program.repoName) ){
+                    delete packageJson.devDependencies[key];
+                }
               }
-              //overwrite the package.json file
-              fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson2, null, 2));
             }
-            if(packageJson2.dependencies){
-              for (const [key, value] of Object.entries(packageJson2.dependencies)) {
-                  if(key.includes(program.repoName)){
-                      delete packageJson2.dependencies[key];
-                  }
-              }
-              //overwrite the package.json file
-              fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson2, null, 2));
-            }
+            //overwrite the package.json file
+            fs.writeFileSync(program.folder+'/'+myWorkspace+'/'+subfolder+'/package.json', JSON.stringify(packageJson, null, 2));
           }
           
 
